@@ -1,0 +1,149 @@
+version: 2
+
+sources:
+  - name: mobiflow
+    schema: public
+    loader: ingestion_api_and_processor
+    tables:
+      - name: raw_postbacks
+        description: Raw postback events captured by the ingestion API.
+        columns:
+          - name: id
+            data_tests:
+              - unique
+              - not_null
+          - name: raw_payload
+            data_tests:
+              - not_null
+          - name: received_at
+            data_tests:
+              - not_null
+
+      - name: event_queue
+        description: Processing queue for raw postbacks.
+        columns:
+          - name: id
+            data_tests:
+              - unique
+              - not_null
+          - name: raw_postback_id
+            data_tests:
+              - not_null
+          - name: status
+            data_tests:
+              - not_null
+              - accepted_values:
+                  arguments:
+                    values: ["pending", "processing", "done", "failed"]
+          - name: attempts
+            data_tests:
+              - not_null
+          - name: max_attempts
+            data_tests:
+              - not_null
+          - name: created_at
+            data_tests:
+              - not_null
+
+      - name: conversions
+        description: Validated conversions produced by the processor.
+        columns:
+          - name: id
+            data_tests:
+              - unique
+              - not_null
+          - name: click_id
+            data_tests:
+              - not_null
+          - name: event_type
+            data_tests:
+              - not_null
+              - accepted_values:
+                  arguments:
+                    values: ["install", "register", "purchase", "subscription", "level_complete"]
+          - name: event_revenue
+            data_tests:
+              - not_null
+          - name: event_currency
+            data_tests:
+              - not_null
+          - name: created_at
+            data_tests:
+              - not_null
+
+      - name: dlq_events
+        description: Dead-letter queue records for failed postback processing.
+        columns:
+          - name: id
+            data_tests:
+              - unique
+              - not_null
+          - name: failed_at
+            data_tests:
+              - not_null
+
+models:
+  - name: stg_raw_postbacks
+    description: Cleaned raw postback records with stable analytics-friendly column names.
+    columns:
+      - name: raw_postback_id
+        data_tests:
+          - unique
+          - not_null
+      - name: raw_payload
+        data_tests:
+          - not_null
+      - name: received_at
+        data_tests:
+          - not_null
+
+  - name: stg_conversions
+    description: Validated conversion records normalized for downstream reporting.
+    columns:
+      - name: conversion_id
+        data_tests:
+          - unique
+          - not_null
+      - name: click_id
+        data_tests:
+          - not_null
+      - name: event_type
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["install", "register", "purchase", "subscription", "level_complete"]
+      - name: event_revenue
+        data_tests:
+          - not_null
+      - name: event_currency
+        data_tests:
+          - not_null
+
+  - name: stg_event_queue
+    description: Queue lifecycle state with processing timing fields.
+    columns:
+      - name: queue_item_id
+        data_tests:
+          - unique
+          - not_null
+      - name: raw_postback_id
+        data_tests:
+          - not_null
+      - name: status
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["pending", "processing", "done", "failed"]
+
+  - name: stg_dlq_events
+    description: Dead-letter events with replay state.
+    columns:
+      - name: dlq_event_id
+        data_tests:
+          - unique
+          - not_null
+      - name: failed_at
+        data_tests:
+          - not_null

@@ -1,0 +1,21 @@
+select
+    id as raw_postback_id,
+    nullif(trim(event_id), '') as event_id,
+    nullif(trim(click_id), '') as click_id,
+    nullif(trim(app_id), '') as app_id,
+    nullif(trim(campaign_id), '') as campaign_id,
+    nullif(trim(partner_id), '') as partner_id,
+    nullif(trim(publisher_id), '') as publisher_id,
+    lower(nullif(trim(event_type), '')) as event_type,
+    event_revenue,
+    upper(nullif(trim(event_currency), '')) as event_currency,
+    nullif(trim(device_id), '') as device_id,
+    lower(nullif(trim(os), '')) as os,
+    upper(nullif(trim(country), '')) as country,
+    event_time,
+    raw_payload,
+    nullif(trim(source_ip), '') as source_ip,
+    nullif(trim(user_agent), '') as user_agent,
+    nullif(trim(content_type), '') as content_type,
+    received_at
+from {{ source('mobiflow', 'raw_postbacks') }}

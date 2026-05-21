@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: fct_conversions
+    description: Business fact table for validated conversions, enriched with raw receive timing.
+    columns:
+      - name: conversion_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: rpt_campaign_performance
+    description: Campaign performance rollup by conversion date, campaign, app, and country.
+
+  - name: rpt_partner_quality
+    description: Partner-level raw postback quality and processing outcome metrics.
+
+  - name: rpt_queue_health
+    description: Queue health rollup by processing status.
+    columns:
+      - name: status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["pending", "processing", "done", "failed"]
+
+  - name: rpt_dlq_errors
+    description: Dead-letter error rollup by error type and replay status.
